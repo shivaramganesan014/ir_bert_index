@@ -30,21 +30,22 @@ def convert_to_embedding(query):
 def query_index(query):
 	query_embedding = convert_to_embedding(query)
 	cos = torch.nn.CosineSimilarity()
-	sim = cos(query_embedding, mean_pooled)
+	# sim = cos(query_embedding, mean_pooled)
 
 	index_loaded = faiss.read_index("sample_code.index")
 	D, I = index_loaded.search(query_embedding[None, :], 4)
 	print("Final index :: ")
 	print(I[0][0])
+	return I[0]
+
+def index_sentences(sentences):
+	index = faiss.IndexFlatIP(768)
+	bert_index(sentences)
+	if(len(sentences) == 0):
+		faiss.write_index(index,"sample_code.index")
 
 
-def index(sentences):
-	sentences = [
-	    "Three years later, the coffin was still full of Jello.",
-	    "The fish dreamed of escaping the fishbowl and into the toilet where he saw his friend go.",
-	    "The person box was packed with jelly many dozens of months later.",
-	    "He found a leprechaun in his walnut shell."
-	]
+def bert_index(sentences):
 	# initialize dictionary to store tokenized sentences
 	tokens = {'input_ids': [], 'attention_mask': []}
 
@@ -60,7 +61,9 @@ def index(sentences):
 	tokens['attention_mask'] = torch.stack(tokens['attention_mask'])
 	
 	with torch.no_grad():
-	    outputs = model(**tokens)
+		t = time.time()
+		outputs = model(**tokens)
+		print("time taken for model to run :: " + str(time.time() - t))
 
 	embeddings = outputs.last_hidden_state
 	attention_mask = tokens['attention_mask']
@@ -71,9 +74,9 @@ def index(sentences):
 	mean_pooled = summed / summed_mask
 
 	index = faiss.IndexFlatIP(768)# build the index
-	index.add(mean_pooled)  
+	
 	# D, I = index.search(query_embedding[None, :], 1) # None dimension is added because we only have one query against 4 documents
-	faiss.write_index(index,"sample_code.index")                # add vectors to the index
+	index.add(mean_pooled)
 
 
 	
