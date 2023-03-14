@@ -19,9 +19,10 @@ def get_item(indices):
 
 
 query = "Nemo is a fish"
-if(len(sys.argv)>2):
+print(len(sys.argv))
+if(len(sys.argv)>=2):
 	query = sys.argv[1]	
-
+print("results for "+query)
 resultIndex = bert.query_index(query)
 print(len(resultIndex))
 if len(resultIndex) == 1 and resultIndex[0] == -1:

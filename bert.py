@@ -42,44 +42,59 @@ def query_index(query):
 
 def index_sentences(index, sentences):
 	if(len(sentences) > 0):
-		return bert_index(sentences)
+		batch_size = 500
+		start = 0
+		values = []
+		while start <= len(sentences):
+			print("running "+ str(start)+" to "+ str(batch_size+start))
+			values.append(bert_index(sentences[start: start + batch_size]))
+			start += batch_size
+			if(start >= len(sentences)):
+				break
+		return values
 	else:
+		print("indexing skipped since len is 0")
 		return None
 
 
 def bert_index(sentences):
-	# initialize dictionary to store tokenized sentences
-	tokens = {'input_ids': [], 'attention_mask': []}
+	if(len(sentences) > 0):
+		print(str(len(sentences))+ " is passed to bert_index")
+		# initialize dictionary to store tokenized sentences
+		tokens = {'input_ids': [], 'attention_mask': []}
 
-	for sentence in sentences:
-	    # encode each sentence and append to dictionary
-	    new_tokens = tokenizer.encode_plus(sentence, max_length=512,
-	                                       truncation=True, padding='max_length',
-	                                       return_tensors='pt')
-	    tokens['input_ids'].append(new_tokens['input_ids'][0])
-	    tokens['attention_mask'].append(new_tokens['attention_mask'][0])
-	# reformat list of tensors into single tensor
-	tokens['input_ids'] = torch.stack(tokens['input_ids'])
-	tokens['attention_mask'] = torch.stack(tokens['attention_mask'])
-	
-	with torch.no_grad():
-		t = time.time()
-		outputs = model(**tokens)
-		print("time taken for model to run :: " + str(time.time() - t))
+		for sentence in sentences:
+		    # encode each sentence and append to dictionary
+		    new_tokens = tokenizer.encode_plus(sentence, max_length=512,
+		                                       truncation=True, padding='max_length',
+		                                       return_tensors='pt')
+		    tokens['input_ids'].append(new_tokens['input_ids'][0])
+		    tokens['attention_mask'].append(new_tokens['attention_mask'][0])
+		# reformat list of tensors into single tensor
+		tokens['input_ids'] = torch.stack(tokens['input_ids'])
+		tokens['attention_mask'] = torch.stack(tokens['attention_mask'])
+		
+		with torch.no_grad():
+			t = time.time()
+			print("start model")
+			outputs = model(**tokens)
+			print("time taken for model to run :: " + str(time.time() - t))
 
-	embeddings = outputs.last_hidden_state
-	attention_mask = tokens['attention_mask']
-	mask = attention_mask.unsqueeze(-1).expand(embeddings.size()).float()
-	masked_embeddings = embeddings * mask
-	summed = torch.sum(masked_embeddings, 1)
-	summed_mask = torch.clamp(mask.sum(1), min=1e-9)
-	mean_pooled = summed / summed_mask
+		embeddings = outputs.last_hidden_state
+		attention_mask = tokens['attention_mask']
+		mask = attention_mask.unsqueeze(-1).expand(embeddings.size()).float()
+		masked_embeddings = embeddings * mask
+		summed = torch.sum(masked_embeddings, 1)
+		summed_mask = torch.clamp(mask.sum(1), min=1e-9)
+		mean_pooled = summed / summed_mask
 
-	index = faiss.IndexFlatIP(768)# build the index
-	
-	# D, I = index.search(query_embedding[None, :], 1) # None dimension is added because we only have one query against 4 documents
-	# index.add(mean_pooled)
-	return mean_pooled
+		# index = faiss.IndexFlatIP(768)# build the index
+		
+		# D, I = index.search(query_embedding[None, :], 1) # None dimension is added because we only have one query against 4 documents
+		# index.add(mean_pooled)
+		return mean_pooled
+	else:
+		return None
 
 
 	
