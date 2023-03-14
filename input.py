@@ -1,6 +1,8 @@
 import os
 import json
 import bert
+import time
+import faiss
 
 def add_to_file(filename, content_list):
 	infile = open(filename, 'w+')
@@ -30,6 +32,8 @@ index_lookup = "index_lookup.json"
 files = os.listdir(path)
 with open(index_lookup ,'w') as f:
 	pass
+
+index = faiss.IndexFlatIP(768)
 for file_ in files:
 	if("sample" in file_):
 		continue
@@ -38,7 +42,7 @@ for file_ in files:
 	with open (path+file_, "r") as f:
 		sentences = []
 		contentjson = json.load(f)
-		index = 0
+		c_index = 0
 		for jsonC in contentjson:
 			content = ""
 			if "title" in jsonC:
@@ -49,12 +53,15 @@ for file_ in files:
 				split_contents = split(content)
 				for c in split_contents:
 					sentences.append(c)
-					urls.append({index: jsonC["url"]})
-					index+=1
+					if(c_index < 10):
+						print(jsonC)
+					urls.append({c_index: jsonC["url"]})
+					c_index+=1
 			if(len(sentences)>batch_size):
 				break
 		add_to_file(index_lookup, urls)
-		bert.index_sentences(sentences)
-
+		mean_pooled = bert.index_sentences(index, sentences)
+		index.add(mean_pooled)
 	break	# print(contentjson.keys())
+faiss.write_index(index,"sample_code.index")
 

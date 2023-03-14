@@ -4,6 +4,7 @@ import json
 
 
 def get_item(indices):
+
 	index_lookup = "index_lookup.json"
 	contents = []
 	result = []
@@ -22,6 +23,7 @@ if(len(sys.argv)>2):
 	query = sys.argv[1]	
 
 resultIndex = bert.query_index(query)
+print(len(resultIndex))
 if len(resultIndex) == 1 and resultIndex[0] == -1:
 	print("No results found")
 else:

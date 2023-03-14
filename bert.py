@@ -1,7 +1,8 @@
 from transformers import AutoTokenizer, AutoModel
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
-import faiss                   # make faiss available
+import faiss
+import time
 
 tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-distilroberta-v1') # you can change the model here
 model = AutoModel.from_pretrained('sentence-transformers/all-distilroberta-v1')
@@ -38,11 +39,8 @@ def query_index(query):
 	print(I[0][0])
 	return I[0]
 
-def index_sentences(sentences):
-	index = faiss.IndexFlatIP(768)
-	bert_index(sentences)
-	if(len(sentences) == 0):
-		faiss.write_index(index,"sample_code.index")
+def index_sentences(index, sentences):
+	return bert_index(sentences)
 
 
 def bert_index(sentences):
@@ -76,7 +74,8 @@ def bert_index(sentences):
 	index = faiss.IndexFlatIP(768)# build the index
 	
 	# D, I = index.search(query_embedding[None, :], 1) # None dimension is added because we only have one query against 4 documents
-	index.add(mean_pooled)
+	# index.add(mean_pooled)
+	return mean_pooled
 
 
 	
