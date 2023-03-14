@@ -53,15 +53,13 @@ for file_ in files:
 				split_contents = split(content)
 				for c in split_contents:
 					sentences.append(c)
-					if(c_index < 10):
-						print(jsonC)
 					urls.append({c_index: jsonC["url"]})
 					c_index+=1
 			if(len(sentences)>batch_size):
 				break
 		add_to_file(index_lookup, urls)
 		mean_pooled = bert.index_sentences(index, sentences)
-		index.add(mean_pooled)
-	break	# print(contentjson.keys())
+		if mean_pooled is not None:
+			index.add(mean_pooled)
 faiss.write_index(index,"sample_code.index")
 

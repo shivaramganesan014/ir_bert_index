@@ -34,13 +34,17 @@ def query_index(query):
 	# sim = cos(query_embedding, mean_pooled)
 
 	index_loaded = faiss.read_index("sample_code.index")
-	D, I = index_loaded.search(query_embedding[None, :], 4)
+	D, I = index_loaded.search(query_embedding[None, :], 10)
+	print(D)
 	print("Final index :: ")
 	print(I[0][0])
 	return I[0]
 
 def index_sentences(index, sentences):
-	return bert_index(sentences)
+	if(len(sentences) > 0):
+		return bert_index(sentences)
+	else:
+		return None
 
 
 def bert_index(sentences):
