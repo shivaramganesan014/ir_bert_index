@@ -33,7 +33,7 @@ def query_index(query):
 	cos = torch.nn.CosineSimilarity()
 	# sim = cos(query_embedding, mean_pooled)
 
-	index_loaded = faiss.read_index("sample_code.index")
+	index_loaded = faiss.read_index("bert_index.index")
 	D, I = index_loaded.search(query_embedding[None, :], 10)
 	print(D)
 	print("Final index :: ")
