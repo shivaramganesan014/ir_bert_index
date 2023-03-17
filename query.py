@@ -3,7 +3,7 @@ import bert
 import json
 
 
-def get_item(indices):
+def get_item(indices, resultScores):
 
 	index_lookup = "index_lookup.json"
 	contents = []
@@ -13,22 +13,22 @@ def get_item(indices):
 	if len(contents) > 0:
 		for i in indices:
 			if(i < len(contents)):
-				result.append(contents[i])
-	print(result)
+				m = {}
+				m["url"] = contents[i]
+				m["score"] = resultScores[i]
+				result.append(m)
 	return result
 
 
-query = "Nemo is a fish"
+query = "sample query"
 print(len(sys.argv))
 if(len(sys.argv)>=2):
 	query = sys.argv[1]	
-print("results for "+query)
-resultIndex = bert.query_index(query)
-print(len(resultIndex))
+resultIndex, resultScores = bert.query_index(query)
 if len(resultIndex) == 1 and resultIndex[0] == -1:
 	print("No results found")
 else:
-	get_item(resultIndex)
+	get_item(resultIndex, resultScores)
 
 
 

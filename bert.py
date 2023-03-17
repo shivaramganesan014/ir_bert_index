@@ -35,10 +35,7 @@ def query_index(query):
 
 	index_loaded = faiss.read_index("bert_index.index")
 	D, I = index_loaded.search(query_embedding[None, :], 10)
-	print(D)
-	print("Final index :: ")
-	print(I[0][0])
-	return I[0]
+	return (I[0], D[0])
 
 def index_sentences(index, sentences):
 	if(len(sentences) > 0):
